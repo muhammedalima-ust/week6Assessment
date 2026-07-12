@@ -80,3 +80,4 @@ allure-report/
 *.seed
 
 secrets.local.properties
+application_local.properties
