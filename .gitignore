@@ -81,3 +81,5 @@ allure-report/
 
 secrets.local.properties
 application_local.properties
+gradlew
+gradlew.bat
