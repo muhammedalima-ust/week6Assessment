@@ -1,0 +1,74 @@
+name: Test Environment
+
+on: [push, pull_request]
+
+permissions:
+  contents: write
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '22'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Generate Gradle Wrapper   
+        run: gradle wrapper
+
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      - name: Run Tests
+        run: ./gradlew clean  test --console=plain --no-daemon
+
+      - name: Checkout gh-pages
+        if: always()
+        uses: actions/checkout@v5
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Generate Allure Report
+        if: always()
+        uses: simple-elf/allure-report-action@master
+        with:
+          gh_pages: gh-pages
+          allure_results: build/allure-results
+          allure_report: allure-report
+          allure_history: allure-history
+          keep_reports: 20\
+
+
+      - name: Upload Allure Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report
+ 
+
+      - name: Deploy Report
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
+      
+      - name: Report Link
+        if: always()
+        run: |
+          echo "Tests completed"
+          echo "Report: https://muhammedalima-ust.github.io/week6Assessment/"
